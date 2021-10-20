@@ -1,0 +1,74 @@
+version: '3'
+services:
+    nginx:
+        image:
+            nginx:latest
+        ports:
+            - "80:80"
+            # - "443:443"
+        volumes:
+            - ./app/public_html:/var/www/html
+            - ./nginx/log:/var/log/nginx
+            - ./nginx/config:/etc/nginx/conf.d
+           # - ./docker-compose.d/nginx/ssl:/etc/nginx/ssl
+        restart:
+            always
+        tty:
+            true
+        stdin_open:
+            true
+        # privileged:
+        #    true
+        networks:
+            - private_network
+        depends_on:
+            - php
+            - redis
+            - mysql
+
+    php:
+        build:
+            ./app
+        volumes:
+            - ./app/public_html:/var/www/html
+        networks:
+            - private_network
+
+    mysql:
+        image:
+            mysql:5.7
+        ports:
+            - "3306:3306"
+        volumes:
+            - ./mysql/db/init:/docker-entrypoint-initdb.d
+            - ./mysql/db/data:/var/lib/mysql
+        command:
+            mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci --sql-mode=NO_ENGINE_SUBSTITUTION
+        environment:
+            MYSQL_ROOT_PASSWORD: root3desu4
+            MYSQL_USER: test
+            MYSQL_PASSWORD: test3desu4
+        tty:
+            true
+        stdin_open:
+            true
+        privileged:
+            true
+        networks:
+            - private_network
+
+    redis:
+        image:
+            redis
+        ports:
+            - "6379:6379"
+        tty:
+            true
+        stdin_open:
+            true
+        networks:
+            - private_network
+
+networks:
+    private_network:
+        external: true
